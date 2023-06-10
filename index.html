@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lector de Códigos de Barras con Vue 3</title>
+  <script src="https://unpkg.com/vue@3.2.21/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>Lector de Códigos de Barras</h1>
+   
+    <div v-if="!scanning">
+      <button @click="startScan">Iniciar Escaneo</button>
+    </div>
+    <div v-else>
+      estoy aqui
+      <video ref="video" autoplay></video>
+      <button @click="stopScan">Detener Escaneo</button>
+    </div>
+    <div v-if="scannedCodes.length > 0">
+      <h2>Códigos Escaneados:</h2>
+      <ul>
+        <li v-for="(code, index) in scannedCodes" :key="index">{{ code }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
