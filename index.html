@@ -24,7 +24,8 @@
           scanning: false,
           scannedCodes: [],
           codeReader: null,
-          videoStream: null
+          videoStream: null,
+          rearCamera: null
         };
       },
       mounted() {
@@ -37,14 +38,14 @@
           navigator.mediaDevices.enumerateDevices()
             .then(devices => {
               const videoDevices = devices.filter(device => device.kind === 'videoinput');
-              const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('rear'));
+              this.rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('rear'));
 
               const constraints = {
                 video: true
               };
 
-              if (rearCamera) {
-                constraints.video = { deviceId: rearCamera.deviceId };
+              if (this.rearCamera) {
+                constraints.video = { deviceId: this.rearCamera.deviceId };
               }
 
               navigator.mediaDevices.getUserMedia(constraints)
