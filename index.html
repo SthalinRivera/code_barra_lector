@@ -9,7 +9,9 @@
   <div id="app">
     <button @click="startScan" :disabled="scanning">Iniciar escaneo</button>
     <button @click="stopScan" :disabled="!scanning">Detener escaneo</button>
-    <video ref="video" width="400" height="300" autoplay></video>
+    <div>
+      <video ref="video" width="400" height="300" autoplay></video>
+    </div>
     <ul>
       <li v-for="code in scannedCodes" :key="code">{{ code }}</li>
     </ul>
