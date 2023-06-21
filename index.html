@@ -1,30 +1,83 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Lector de Códigos de Barras con Vue 3</title>
-  <script src="https://unpkg.com/vue@3.2.21/dist/vue.global.prod.js"></script>
+  <title>Barcode Scanner</title>
+  <script src="https://unpkg.com/vue@next"></script>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
 </head>
 <body>
   <div id="app">
-    <h1>Lector de Códigos de Barras</h1>
-   
-    <div v-if="!scanning">
-      <button @click="startScan">Iniciar Escaneo</button>
-    </div>
-    <div v-else>
-      estoy aqui
-      <video ref="video" autoplay></video>
-      <button @click="stopScan">Detener Escaneo</button>
-    </div>
-    <div v-if="scannedCodes.length > 0">
-      <h2>Códigos Escaneados:</h2>
-      <ul>
-        <li v-for="(code, index) in scannedCodes" :key="index">{{ code }}</li>
-      </ul>
-    </div>
+    <button @click="startScan" :disabled="scanning">Iniciar escaneo</button>
+    <button @click="stopScan" :disabled="!scanning">Detener escaneo</button>
+    <video ref="video" width="400" height="300" autoplay></video>
+    <ul>
+      <li v-for="code in scannedCodes" :key="code">{{ code }}</li>
+    </ul>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    const app = Vue.createApp({
+      data() {
+        return {
+          scanning: false,
+          scannedCodes: [],
+          codeReader: null,
+          videoStream: null
+        };
+      },
+      mounted() {
+        this.codeReader = new ZXing.BrowserBarcodeReader();
+      },
+      methods: {
+        startScan() {
+          this.scanning = true;
+
+          navigator.mediaDevices.enumerateDevices()
+            .then(devices => {
+              const videoDevices = devices.filter(device => device.kind === 'videoinput');
+              const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('rear'));
+
+              if (rearCamera) {
+                navigator.mediaDevices.getUserMedia({ video: { deviceId: rearCamera.deviceId } })
+                  .then(stream => {
+                    this.$refs.video.srcObject = stream;
+                    this.videoStream = stream;
+
+                    this.codeReader.decodeFromVideoElement(this.$refs.video, (result, err) => {
+                      if (result) {
+                        this.scannedCodes.push(result.text);
+                      }
+                      if (err && !(err instanceof ZXing.NotFoundException)) {
+                        console.error(err);
+                      }
+                    });
+                  })
+                  .catch(error => {
+                    console.error(error);
+                    this.stopScan();
+                  });
+              } else {
+                console.error('No se encontró la cámara trasera.');
+                this.stopScan();
+              }
+            })
+            .catch(error => {
+              console.error(error);
+              this.stopScan();
+            });
+        },
+        stopScan() {
+          this.scanning = false;
+          this.codeReader.reset();
+          if (this.videoStream) {
+            this.videoStream.getTracks().forEach(track => track.stop());
+            this.videoStream = null;
+          }
+        }
+      }
+    });
+
+    app.mount('#app');
+  </script>
 </body>
 </html>
